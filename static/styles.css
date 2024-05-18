@@ -1,0 +1,101 @@
+body {
+    background-color: #0c0f1c;
+    color: #ffffff;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    flex-direction: column;
+    animation: fadeIn 1s ease-in-out;
+}
+
+/* Styles for the main heading */
+h1 {
+    margin-bottom: 20px;
+    font-size: 36px;
+    text-align: center;
+    animation: slideInDown 1s ease-in-out;
+}
+
+/* Styles for the form */
+form {
+    text-align: center;
+    margin-bottom: 20px;
+    animation: slideInUp 1s ease-in-out;
+}
+
+/* Styles for labels */
+label {
+    display: block;
+    margin-bottom: 10px;
+}
+
+/* Styles for input fields and button */
+input[type="number"],
+input[type="text"],
+button {
+    padding: 10px;
+    margin-bottom: 10px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    background-color: #1e2751;
+    color: #ffffff;
+    transition: background-color 0.3s;
+    width: 200px;
+}
+
+/* Styles for button hover effect */
+button {
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #304087;
+}
+
+/* Styles for the plot container */
+#plot {
+    width: 80%;
+    max-width: 800px;
+    margin: 0 auto;
+    animation: fadeIn 1s ease-in-out;
+}
+
+/* Animation keyframes */
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+@keyframes slideInDown {
+    0% {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideInUp {
+    0% {
+        transform: translateY(50px);
+        opacity: 0;
+    }
+
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}

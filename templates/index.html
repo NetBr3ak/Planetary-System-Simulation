@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planetary System Simulation</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js" defer></script>
+    <link rel="stylesheet" type="text/css" href="/static/styles.css">
+    <script src="/static/scripts.js" defer></script>
+</head>
+
+<body>
+    <h1>Planetary System Simulation</h1>
+    <form id="simulationForm">
+        <!-- Inputs for mass, initial position, and velocity of planets -->
+        <label for="m1">Mass of Planet 1:</label>
+        <input type="number" id="m1" name="m1" step="0.1" value="10000" required><br>
+        <label for="m2">Mass of Planet 2:</label>
+        <input type="number" id="m2" name="m2" step="0.1" value="1500" required><br>
+        <label for="r1">Initial Position of Planet 1 (x, y):</label>
+        <input type="text" id="r1" name="r1" placeholder="e.g., 0,0" value="0,0" required><br>
+        <label for="r2">Initial Position of Planet 2 (x, y):</label>
+        <input type="text" id="r2" name="r2" placeholder="e.g., 4,4" value="4,4" required><br>
+        <label for="v1">Initial Velocity of Planet 1 (vx, vy):</label>
+        <input type="text" id="v1" name="v1" placeholder="e.g., 5,3" value="5,3" required><br>
+        <label for="v2">Initial Velocity of Planet 2 (vx, vy):</label>
+        <input type="text" id="v2" name="v2" placeholder="e.g., 45,-15" value="45,-15" required><br>
+        <button type="submit">Predict Trajectory</button>
+    </form>
+    <div id="plot"></div>
+</body>
+
+</html>
