@@ -3,11 +3,9 @@ body {
     color: #ffffff;
     font-family: Arial, sans-serif;
     margin: 0;
-    padding: 0;
+    padding: 4rem 0;
     display: flex;
-    justify-content: center;
     align-items: center;
-    height: 100vh;
     flex-direction: column;
     animation: fadeIn 1s ease-in-out;
 }
