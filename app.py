@@ -4,6 +4,8 @@ from scipy.integrate import solve_ivp
 
 app = Flask(__name__)
 
+REQUIRED_FIELDS = ('m1', 'm2', 'r1', 'r2', 'v1', 'v2')
+
 # Define the equations of motion for a two-body system
 def two_body_equations(t, y, m1, m2):
     r1, r2, v1, v2 = y.reshape((4, 2))
@@ -12,12 +14,23 @@ def two_body_equations(t, y, m1, m2):
     dv2dt = m1 * (r1 - r2) / r**3
     return np.concatenate((v1, v2, dv1dt, dv2dt))
 
+def parse_simulation_request(data):
+    """Validate and convert the raw request body. Raises (KeyError, TypeError, ValueError) on bad input."""
+    if data is None or any(field not in data for field in REQUIRED_FIELDS):
+        raise KeyError('missing required field')
+    m1, m2 = float(data['m1']), float(data['m2'])
+    r1, r2, v1, v2 = (np.array(data[f], dtype=float) for f in ('r1', 'r2', 'v1', 'v2'))
+    if not (r1.shape == r2.shape == v1.shape == v2.shape == (2,)):
+        raise ValueError('r1, r2, v1, v2 must each be [x, y] pairs')
+    return m1, m2, r1, r2, v1, v2
+
 # Route for simulating the two-body system
 @app.route('/simulate', methods=['POST'])
 def simulate():
-    data = request.json
-    m1, m2 = map(float, (data['m1'], data['m2']))
-    r1, r2, v1, v2 = map(np.array, (data['r1'], data['r2'], data['v1'], data['v2']))
+    try:
+        m1, m2, r1, r2, v1, v2 = parse_simulation_request(request.get_json(silent=True))
+    except (KeyError, TypeError, ValueError) as exc:
+        return jsonify(error=str(exc) or 'invalid request body'), 400
     y0 = np.concatenate((r1, r2, v1, v2))
     t_span = (0, 10)
     t_eval = np.linspace(*t_span, 1000)
