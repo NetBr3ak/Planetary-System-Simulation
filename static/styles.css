@@ -1,99 +1,177 @@
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
 body {
     background-color: #0c0f1c;
     color: #ffffff;
-    font-family: Arial, sans-serif;
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     margin: 0;
-    padding: 4rem 0;
-    display: flex;
-    align-items: center;
-    flex-direction: column;
-    animation: fadeIn 1s ease-in-out;
+    padding: 3rem 1.25rem 4rem;
+    line-height: 1.5;
+}
+
+main {
+    max-width: 52rem;
+    margin-inline: auto;
 }
 
 /* Styles for the main heading */
 h1 {
-    margin-bottom: 20px;
-    font-size: 36px;
-    text-align: center;
-    animation: slideInDown 1s ease-in-out;
+    margin: 0 0 0.5rem;
+    font-size: clamp(1.75rem, 5vw, 2.25rem);
+    letter-spacing: -0.01em;
 }
 
-/* Styles for the form */
+/* Standing note on the model's conventions */
+.lede {
+    max-width: 46ch;
+    margin: 0 0 2rem;
+    color: #9fb0d9;
+}
+
+/* Styles for the form: one column per planet, collapsing on narrow screens */
 form {
-    text-align: center;
-    margin-bottom: 20px;
-    animation: slideInUp 1s ease-in-out;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+fieldset {
+    margin: 0;
+    padding: 0.5rem 1.25rem 1.25rem;
+    border: 1px solid #26325e;
+    border-radius: 8px;
+    background-color: #131a30;
+}
+
+legend {
+    padding: 0 0.4rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-size: 0.8125rem;
+}
+
+/* Legend colour matches the planet's trace colour in the plot */
+fieldset:first-of-type legend {
+    color: #66ff66;
+}
+
+fieldset:nth-of-type(2) legend {
+    color: #ff6699;
 }
 
 /* Styles for labels */
 label {
     display: block;
-    margin-bottom: 10px;
+    margin-bottom: 0.25rem;
+    font-size: 0.8125rem;
+    color: #9fb0d9;
 }
 
 /* Styles for input fields and button */
 input[type="number"],
 input[type="text"],
 button {
-    padding: 10px;
-    margin-bottom: 10px;
-    border: none;
-    border-radius: 5px;
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 12px;
+    margin-bottom: 1rem;
+    border: 1px solid #26325e;
+    border-radius: 6px;
     font-size: 16px;
     background-color: #1e2751;
     color: #ffffff;
-    transition: background-color 0.3s;
-    width: 200px;
 }
 
-/* Styles for button hover effect */
+/* Monospace keeps the digits of the six numeric fields aligned */
+input[type="number"],
+input[type="text"] {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+input::placeholder {
+    color: #9fb0d9;
+}
+
+input:last-of-type {
+    margin-bottom: 0;
+}
+
+input:invalid {
+    border-color: #ff9e80;
+}
+
+/* Styles for the submit button */
 button {
+    grid-column: 1 / -1;
+    justify-self: start;
+    width: auto;
+    min-width: 14rem;
+    margin-bottom: 0;
+    padding-inline: 1.5rem;
+    border-color: transparent;
+    background-color: #304087;
+    font-weight: 600;
     cursor: pointer;
+    transition: background-color 150ms ease;
 }
 
 button:hover {
-    background-color: #304087;
+    background-color: #3b50a8;
 }
 
-/* Styles for the plot container */
+/* Secondary action: only appears once there is a trajectory to play back */
+#animate {
+    width: auto;
+    min-width: 0;
+    margin-bottom: 1rem;
+    background-color: transparent;
+    border-color: #26325e;
+    font-weight: 500;
+}
+
+#animate:hover {
+    background-color: #1e2751;
+}
+
+input:focus-visible,
+button:focus-visible {
+    outline: 2px solid #9fb0d9;
+    outline-offset: 2px;
+}
+
+/* Run feedback: pending, success and error all land here */
+#status {
+    min-height: 1.5rem;
+    margin: 0 0 1rem;
+    color: #9fb0d9;
+    font-size: 0.9375rem;
+}
+
+#status.status--error {
+    color: #ff9e80;
+}
+
+/* Styles for the plot container: fades in once a chart is actually drawn */
 #plot {
-    width: 80%;
-    max-width: 800px;
-    margin: 0 auto;
-    animation: fadeIn 1s ease-in-out;
+    width: 100%;
+    opacity: 0;
+    transition: opacity 200ms ease;
 }
 
-/* Animation keyframes */
-@keyframes fadeIn {
-    0% {
-        opacity: 0;
-    }
-
-    100% {
-        opacity: 1;
-    }
+#plot.is-drawn {
+    opacity: 1;
 }
 
-@keyframes slideInDown {
-    0% {
-        transform: translateY(-50px);
-        opacity: 0;
-    }
+@media (prefers-reduced-motion: reduce) {
 
-    100% {
-        transform: translateY(0);
-        opacity: 1;
-    }
-}
-
-@keyframes slideInUp {
-    0% {
-        transform: translateY(50px);
-        opacity: 0;
-    }
-
-    100% {
-        transform: translateY(0);
-        opacity: 1;
+    #plot,
+    button {
+        transition: none;
     }
 }

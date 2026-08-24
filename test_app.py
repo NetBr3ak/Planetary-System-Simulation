@@ -43,9 +43,42 @@ def test_non_numeric_mass_returns_400() -> None:
     assert resp.status_code == 400
 
 
+def test_non_finite_value_returns_400() -> None:
+    """A typo in a position field reaches the server as [null, null]."""
+    client = app.test_client()
+    resp = client.post("/simulate", json={**VALID_BODY, "r1": [None, None]})
+    assert resp.status_code == 400
+
+
+def test_non_positive_mass_returns_400() -> None:
+    client = app.test_client()
+    for mass in (0, -10000):
+        resp = client.post("/simulate", json={**VALID_BODY, "m1": mass})
+        assert resp.status_code == 400, mass
+
+
+def test_identical_positions_returns_400() -> None:
+    """Coincident bodies used to stall the solver forever instead of failing."""
+    client = app.test_client()
+    resp = client.post("/simulate", json={**VALID_BODY, "r2": [0, 0]})
+    assert resp.status_code == 400
+
+
+def test_failed_integration_returns_400() -> None:
+    """A near-singular start makes solve_ivp bail; that must not read as success."""
+    client = app.test_client()
+    resp = client.post("/simulate", json={**VALID_BODY, "r2": [1e-9, 0]})
+    assert resp.status_code == 400
+    assert "error" in resp.get_json()
+
+
 if __name__ == "__main__":
     test_valid_request_returns_trajectory()
     test_missing_field_returns_400()
     test_malformed_vector_returns_400()
     test_non_numeric_mass_returns_400()
+    test_non_finite_value_returns_400()
+    test_non_positive_mass_returns_400()
+    test_identical_positions_returns_400()
+    test_failed_integration_returns_400()
     print("All smoke tests passed.")

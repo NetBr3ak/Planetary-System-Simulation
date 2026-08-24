@@ -61,6 +61,19 @@ python test_app.py
 This checks that `/simulate` returns a trajectory for valid input, and returns
 a 400 error with a message for invalid input.
 
+## Development tools
+
+`pyproject.toml` configures a linter and a type checker. Install them only if you
+want to run them:
+
+```
+pip install -r requirements-dev.txt
+ruff check .
+ruff format --check .
+mypy .
+pytest -q
+```
+
 ## Contributing
 
 Contributions are welcome. Open an issue or a pull request with your suggestion,

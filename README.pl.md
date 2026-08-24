@@ -61,6 +61,19 @@ python test_app.py
 Test sprawdza, czy `/simulate` zwraca tor lotu dla poprawnych danych i błąd 400
 z opisem dla danych niepoprawnych.
 
+## Narzędzia deweloperskie
+
+`pyproject.toml` konfiguruje linter i kontrolę typów. Zainstaluj je tylko wtedy,
+gdy chcesz ich użyć:
+
+```
+pip install -r requirements-dev.txt
+ruff check .
+ruff format --check .
+mypy .
+pytest -q
+```
+
 ## Współpraca
 
 Zgłoszenia i pull requesty są mile widziane. Otwórz issue lub pull request

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from math import isfinite
 from typing import Any
 
 import numpy as np
@@ -33,6 +34,15 @@ def parse_simulation_request(
     r1, r2, v1, v2 = (np.array(data[f], dtype=float) for f in ("r1", "r2", "v1", "v2"))
     if not (r1.shape == r2.shape == v1.shape == v2.shape == (2,)):
         raise ValueError("r1, r2, v1, v2 must each be [x, y] pairs")
+    if not (isfinite(m1) and isfinite(m2)) or not all(
+        np.isfinite(vec).all() for vec in (r1, r2, v1, v2)
+    ):
+        raise ValueError("every value must be a finite number")
+    if m1 <= 0 or m2 <= 0:
+        raise ValueError("both masses must be greater than zero")
+    # Coincident bodies make the 1/r**3 term NaN, which stalls solve_ivp forever.
+    if np.array_equal(r1, r2):
+        raise ValueError("the two planets must start at different positions")
     return m1, m2, r1, r2, v1, v2
 
 
@@ -46,7 +56,19 @@ def simulate() -> Response | tuple[Response, int]:
     y0 = np.concatenate((r1, r2, v1, v2))
     t_span = (0, 10)
     t_eval = np.linspace(*t_span, 1000)
-    sol = solve_ivp(two_body_equations, t_span, y0, args=(m1, m2), t_eval=t_eval)
+    # RK45 defaults (rtol 1e-3) let total energy drift by ~186% over this span; these
+    # hold it to ~4e-7 and still solve the sample input in well under a tenth of a second.
+    sol = solve_ivp(
+        two_body_equations,
+        t_span,
+        y0,
+        args=(m1, m2),
+        t_eval=t_eval,
+        rtol=1e-8,
+        atol=1e-10,
+    )
+    if sol.status != 0:
+        return jsonify(error=str(sol.message)), 400
     return jsonify(sol.y.tolist())
 
 
