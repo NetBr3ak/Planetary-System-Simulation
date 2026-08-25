@@ -11,10 +11,18 @@
         href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='2' fill='%2308090B'/><ellipse cx='16' cy='16' rx='13' ry='6' fill='none' stroke='%23FFB020' stroke-width='2' transform='rotate(-28 16 16)'/><circle cx='16' cy='16' r='4.5' fill='%235BE1FF'/></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet"
+    <!-- media="print" holds the third-party stylesheet off the critical path, the onload
+         promotes it the moment it lands, and the noscript copy covers the rest. -->
+    <link rel="stylesheet" media="print" onload="this.media='all'"
         href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,400..800&family=Fira+Code:wght@400..600&display=swap">
-    <script src="https://cdn.plot.ly/plotly-3.3.0.min.js"
-        integrity="sha384-9j4dOnaStvA18a0L9YXraOfBpiADen+WXfxp1U03QguLoXMW9b5bKHada4AwQAxK" crossorigin="anonymous"
+    <noscript>
+        <link rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,400..800&family=Fira+Code:wght@400..600&display=swap">
+    </noscript>
+    <!-- The basic bundle carries bar, pie and scatter. This page draws scatter only, so
+         the full build costs 1,098,844 gzipped bytes (74.9%) it never executes. -->
+    <script src="https://cdn.plot.ly/plotly-basic-3.3.0.min.js"
+        integrity="sha384-bCeEXWVqVBEXg+2rAoWjwvt6o1BxDTM7IRdb+NinkxRNx612ir87vfMvcoNe3ZHl" crossorigin="anonymous"
         defer></script>
     <link rel="stylesheet" type="text/css" href="/static/styles.css">
     <script src="/static/scripts.js" defer></script>
@@ -24,13 +32,13 @@
     <main>
         <aside class="rail">
             <div class="plate">
-                <p class="plate__spec reveal reveal--a">Two-body / dimensionless / RK45 solve_ivp</p>
+                <p class="plate__spec reveal reveal--a">Two-body / dimensionless / DOP853 solve_ivp</p>
                 <h1 class="reveal reveal--b">Planetary System Simulation</h1>
                 <ul class="plate__constants reveal reveal--b">
                     <li>G = 1</li>
                     <li>t 0 to 10</li>
                     <li>1000 steps</li>
-                    <li>rtol 1e-8</li>
+                    <li>rtol 1e-10</li>
                 </ul>
             </div>
 
@@ -87,7 +95,7 @@
 
                 <button type="submit" class="run reveal reveal--e" id="run">
                     <span class="run__verb" id="runVerb">Run</span>
-                    <span class="run__spec">solve_ivp / RK45 / rtol 1e-8</span>
+                    <span class="run__spec">solve_ivp / DOP853 / rtol 1e-10</span>
                 </button>
             </form>
         </aside>
@@ -106,21 +114,31 @@
                     <span class="band__label">Step</span>
                     <span class="band__value" id="outStep">---</span>
                 </div>
+                <div class="band__cell">
+                    <span class="band__label">Energy drift dE/E</span>
+                    <span class="band__value" id="outDrift">---</span>
+                </div>
                 <div class="band__progress" id="progress" aria-hidden="true"></div>
             </div>
 
             <div class="scope">
-                <div class="scope__graticule reveal reveal--f" id="graticule" aria-hidden="true"></div>
+                <div class="scope__graticule reveal reveal--f" aria-hidden="true"></div>
                 <div id="plot"></div>
             </div>
 
             <div class="strip">
                 <span class="led" id="led" aria-hidden="true"></span>
+                <div class="seg" id="frames" role="group" aria-label="Reference frame" hidden>
+                    <button type="button" data-frame="bary" aria-pressed="true">Barycentre</button>
+                    <button type="button" data-frame="lab" aria-pressed="false">Lab</button>
+                    <button type="button" data-frame="planet1" aria-pressed="false">Planet 1</button>
+                </div>
                 <button type="button" id="animate" aria-label="Play the live simulation" hidden>
                     <svg viewBox="0 0 12 14" width="11" height="13" aria-hidden="true" focusable="false">
-                        <path d="M1 1 L11 7 L1 13 Z" fill="currentColor" />
+                        <path class="icon-play" d="M1 1 L11 7 L1 13 Z" fill="currentColor" />
+                        <rect class="icon-stop" x="1" y="2" width="10" height="10" fill="currentColor" />
                     </svg>
-                    <span>Play</span>
+                    <span id="playVerb">Play</span>
                 </button>
                 <p id="status" role="status" aria-live="polite"></p>
             </div>

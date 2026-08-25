@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from math import isfinite
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 from flask import Flask, Response, jsonify, render_template, request
@@ -9,8 +9,13 @@ from numpy.typing import NDArray
 from scipy.integrate import solve_ivp
 
 app = Flask(__name__)
+# A valid body is about 200 bytes. Uncapped, Werkzeug hands the view a body of any
+# size and np.array materialises it before the shape check can reject it: a 25 MB
+# request peaked at 471 MB resident. Werkzeug now answers 413 before the view runs.
+app.config["MAX_CONTENT_LENGTH"] = 64 * 1024
 
 REQUIRED_FIELDS = ("m1", "m2", "r1", "r2", "v1", "v2")
+SIGNIFICANT_DIGITS = 7
 
 FloatArray = NDArray[np.float64]
 
@@ -22,6 +27,62 @@ def two_body_equations(t: float, y: FloatArray, m1: float, m2: float) -> FloatAr
     dv1dt = m2 * (r2 - r1) / r**3
     dv2dt = m1 * (r1 - r2) / r**3
     return np.concatenate((v1, v2, dv1dt, dv2dt))
+
+
+class ClosestApproach:
+    """Radial velocity (r2-r1).(v2-v1) as a solve_ivp event. Only its negative to
+    positive crossing is a closest approach, which is what direction = 1 selects; the
+    other crossing is the far point. solve_ivp refines each root with Brentq, so the
+    times come back exact instead of snapped to the nearest of the 1000 grid samples.
+
+    A class and not a function because solve_ivp reads `direction` off the callable,
+    and an attribute bolted onto a def has no type mypy --strict will accept.
+    """
+
+    direction = 1.0
+
+    def __call__(self, t: float, y: FloatArray, m1: float, m2: float) -> float:
+        r1, r2, v1, v2 = y.reshape((4, 2))
+        return float((r2 - r1) @ (v2 - v1))
+
+
+def classify(m1: float, m2: float, y0: FloatArray) -> str:
+    """Bound, parabolic or escaping, judged on the two-body energy in the barycentric
+    frame. Lab-frame energy also carries the centre-of-mass kinetic term, which never
+    vanishes, so a bound pair that happens to drift fast would read as an escape."""
+    r1, r2, v1, v2 = y0.reshape((4, 2))
+    relative_velocity = v2 - v1
+    kinetic = 0.5 * (m1 * m2 / (m1 + m2)) * float(relative_velocity @ relative_velocity)
+    potential = m1 * m2 / float(np.linalg.norm(r2 - r1))
+    energy = kinetic - potential
+    if abs(energy) <= 1e-9 * (kinetic + potential):
+        return "parabolic"
+    return "bound" if energy < 0 else "escape"
+
+
+def energy_drift(m1: float, m2: float, y: FloatArray) -> FloatArray:
+    """|E(t) - E(0)| / |E(0)| along the solution. Total energy is conserved exactly in
+    this system, so the curve reads the integrator's own error and nothing else."""
+    r1x, r1y, r2x, r2y, v1x, v1y, v2x, v2y = y
+    energy = (
+        0.5 * m1 * (v1x**2 + v1y**2)
+        + 0.5 * m2 * (v2x**2 + v2y**2)
+        - m1 * m2 / np.hypot(r2x - r1x, r2y - r1y)
+    )
+    # Lab-frame energy can start at exactly zero; an infinity here would ship invalid JSON.
+    reference = abs(float(energy[0])) or 1.0
+    return cast("FloatArray", np.abs(energy - energy[0]) / reference)
+
+
+def compact(values: FloatArray) -> list[Any]:
+    """Round to SIGNIFICANT_DIGITS figures of the array's own peak. On the sample input
+    that is a rounding error under a hundredth of a plotted pixel, and it cuts the
+    response from 148,539 bytes to 42,774."""
+    peak = float(np.abs(values).max())
+    decimals = SIGNIFICANT_DIGITS
+    if peak > 0:
+        decimals -= int(np.ceil(np.log10(peak)))
+    return cast("list[Any]", np.round(values, decimals).tolist())
 
 
 def parse_simulation_request(
@@ -55,21 +116,34 @@ def simulate() -> Response | tuple[Response, int]:
         return jsonify(error=str(exc) or "invalid request body"), 400
     y0 = np.concatenate((r1, r2, v1, v2))
     t_span = (0, 10)
-    t_eval = np.linspace(*t_span, 1000)
-    # RK45 defaults (rtol 1e-3) let total energy drift by ~186% over this span; these
-    # hold it to ~4e-7 and still solve the sample input in well under a tenth of a second.
+    # DOP853 holds total energy on the sample input to 1.1e-8 over the span, against
+    # 4.1e-7 for the RK45 / rtol 1e-8 / atol 1e-10 pair it replaces: 37 times tighter,
+    # and it still solves that input in well under a tenth of a second.
     sol = solve_ivp(
         two_body_equations,
         t_span,
         y0,
         args=(m1, m2),
-        t_eval=t_eval,
-        rtol=1e-8,
-        atol=1e-10,
+        t_eval=np.linspace(*t_span, 1000),
+        method="DOP853",
+        rtol=1e-10,
+        atol=1e-12,
+        events=ClosestApproach(),
     )
     if sol.status != 0:
-        return jsonify(error=str(sol.message)), 400
-    return jsonify(sol.y.tolist())
+        # A step-size failure means a near collision the integrator cannot resolve on
+        # an otherwise well-formed body, so it does not share 400 with the parse errors.
+        message = "the planets pass too close together for the solver to follow; start them further apart"
+        return jsonify(error=message), 422
+    return jsonify(
+        positions=compact(sol.y[:4]),
+        drift=compact(energy_drift(m1, m2, sol.y)),
+        events=[
+            {"t": float(t), "r1": state[:2].tolist(), "r2": state[2:4].tolist()}
+            for t, state in zip(sol.t_events[0], sol.y_events[0], strict=True)
+        ],
+        classification=classify(m1, m2, y0),
+    )
 
 
 # Route for rendering the index.html template

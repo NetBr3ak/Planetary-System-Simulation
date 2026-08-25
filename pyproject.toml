@@ -1,15 +1,13 @@
 [project]
 name = "planetary-system-simulation"
 version = "0.1.0"
-requires-python = ">=3.9"
+# numpy 2.5 and scipy 1.18 both floor at 3.12, so ">=3.9" was never satisfiable.
+requires-python = ">=3.12"
 dependencies = [
     "flask>=3.1.3",
     "numpy>=2.5.1",
     "scipy>=1.18.0",
 ]
-
-[tool.ruff]
-target-version = "py39"
 
 [tool.mypy]
 strict = true

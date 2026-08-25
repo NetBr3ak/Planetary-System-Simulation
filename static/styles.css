@@ -15,6 +15,8 @@
     --paper-3: #8A929F;
     --signal: #FFB020;
     --on-signal: #14100A;
+    --seam: #BD831A;
+    /* readout band gaps: the old 28% ink-on-signal rule, flattened so a grid gap carries it */
     --alarm: #FF6B5A;
     --ch1: #5BE1FF;
     --ch2: #F2F4F7;
@@ -34,7 +36,6 @@
 
 body {
     margin: 0;
-    padding: 0;
     height: 100dvh;
     overflow: hidden;
     background-color: var(--ink-000);
@@ -313,12 +314,15 @@ form {
 
 /* ---------- amber readout band ---------- */
 
+/* Seams are grid gaps over the band's own ground, not cell borders: the cell count
+   and the column count both change, and a gap needs no rule per edge. */
 .band {
     position: relative;
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
     min-height: 84px;
-    background-color: var(--signal);
+    background-color: var(--seam);
     color: var(--on-signal);
 }
 
@@ -329,10 +333,7 @@ form {
     gap: 2px;
     padding: 10px 20px;
     min-width: 0;
-}
-
-.band__cell+.band__cell {
-    border-left: 1px solid rgba(20, 16, 10, .28);
+    background-color: var(--signal);
 }
 
 .band__label {
@@ -345,13 +346,12 @@ form {
 
 .band__value {
     font-family: var(--font-mono);
-    font-size: clamp(1.6rem, 3.2vw, 2.75rem);
+    font-size: clamp(1.35rem, 2.4vw, 2.25rem);
     font-weight: 600;
     line-height: 1;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
     overflow: hidden;
-    text-overflow: clip;
 }
 
 .band__progress {
@@ -418,9 +418,11 @@ form {
 
 .strip {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 12px;
     min-height: 44px;
+    padding-block: 6px;
     padding-inline: 16px;
     border-top: 1px solid var(--rule-soft);
     background-color: var(--ink-250);
@@ -458,7 +460,8 @@ form {
     }
 }
 
-#animate {
+#animate,
+.seg button {
     flex: none;
     display: flex;
     align-items: center;
@@ -475,20 +478,55 @@ form {
     letter-spacing: 0.14em;
     text-transform: uppercase;
     cursor: pointer;
-    transition: background-color 150ms ease;
+    transition: background-color 150ms var(--snap);
 }
 
-#animate:hover {
+#animate:hover,
+.seg button:hover {
     background-color: var(--ink-200);
 }
 
-/* The id selector above outranks the UA [hidden] rule, so restate it here. */
-#animate[hidden] {
+#animate .icon-stop,
+#animate.is-playing .icon-play {
+    display: none;
+}
+
+#animate.is-playing .icon-stop {
+    display: block;
+}
+
+/* Reference frame: the lab frame lets the barycentre translate, which squashes the
+   default input into a 7.20:1 sliver. Barycentric and planet-centred both read 1.06:1. */
+.seg {
+    display: flex;
+}
+
+.seg button {
+    color: var(--paper-2);
+}
+
+/* One shared seam instead of two stacked borders. */
+.seg button+button {
+    margin-left: -1px;
+}
+
+.seg button[aria-pressed="true"] {
+    position: relative;
+    z-index: 1;
+    border-color: var(--signal);
+    background-color: var(--signal);
+    color: var(--on-signal);
+}
+
+/* The selectors above outrank the UA [hidden] rule, so restate it for both. */
+#animate[hidden],
+.seg[hidden] {
     display: none;
 }
 
 #status {
     margin: 0;
+    flex: 1 1 14rem;
     min-width: 0;
     font-family: var(--font-mono);
     font-size: 12px;
@@ -553,8 +591,14 @@ form {
         animation-delay: 160ms;
     }
 
+    .band.is-live .band__cell:nth-child(4) .band__value {
+        animation-delay: 240ms;
+    }
+
+    /* Under the 50ms frame cadence the bar never reaches a target before the next
+       one lands, so it reads as permanently behind. */
     .band__progress {
-        transition: transform 120ms linear;
+        transition: transform 40ms linear;
     }
 }
 
@@ -632,6 +676,7 @@ form {
     }
 
     .band {
+        grid-template-columns: repeat(2, 1fr);
         min-height: 64px;
     }
 
