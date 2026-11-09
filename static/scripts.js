@@ -138,8 +138,8 @@ const head = (x, y, channel) => ({
     }
 });
 
-// Brentq-refined closest approaches, so a ring sits on the exact minimum rather than
-// on whichever of the 1000 samples happened to land nearest it.
+// Brentq-refined closest approaches, so a ring sits on the solver's minimum rather
+// than on whichever of the 1000 samples happened to land nearest it.
 const rings = (body1, body2) => ({
     x: [...body1[0], ...body2[0]],
     y: [...body1[1], ...body2[1]],

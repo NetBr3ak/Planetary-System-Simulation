@@ -37,8 +37,9 @@ def two_body_equations(t: float, y: FloatArray, m1: float, m2: float) -> FloatAr
 class ClosestApproach:
     """Radial velocity (r2-r1).(v2-v1) as a solve_ivp event. Only its negative to
     positive crossing is a closest approach, which is what direction = 1 selects; the
-    other crossing is the far point. solve_ivp refines each root with Brentq, so the
-    times come back exact instead of snapped to the nearest of the 1000 grid samples.
+    other crossing is the far point. solve_ivp refines each root with Brentq on its
+    dense output, so the times fall between the 1000 grid samples, as accurate as the
+    solution itself.
 
     A class and not a function because solve_ivp reads `direction` off the callable,
     and an attribute bolted onto a def has no type mypy --strict will accept.

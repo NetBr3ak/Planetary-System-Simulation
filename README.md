@@ -32,8 +32,8 @@ planet 1 at m1 / r².
 SciPy's `solve_ivp` integrates the equations with DOP853, an explicit Runge-Kutta
 method of order 8 with adaptive step size. The relative tolerance is 1e-10 and the
 absolute tolerance 1e-12. The response samples the path at 1000 evenly spaced times.
-Closest approaches come from a root finder on the radial velocity, so they are exact
-and not snapped to the nearest sample.
+Closest approaches come from a root finder on the radial velocity. They can fall
+between samples, and they are as accurate as the numerical solution.
 
 The orbit report uses the specific orbital energy of the relative motion,
 v² / 2 - (m1 + m2) / r. Below zero the pair is bound, above zero it escapes. Within

@@ -32,8 +32,8 @@ m2 / r², a planeta 2 w stronę planety 1 z przyspieszeniem m1 / r².
 Funkcja `solve_ivp` z SciPy całkuje równania metodą DOP853. To jawna metoda
 Rungego-Kutty rzędu 8 ze zmiennym krokiem. Tolerancja względna wynosi 1e-10,
 a bezwzględna 1e-12. Odpowiedź zawiera tor w 1000 równo rozłożonych chwilach.
-Największe zbliżenia wyznacza szukanie miejsc zerowych prędkości radialnej, więc są
-dokładne, a nie przyciągnięte do najbliższej próbki.
+Największe zbliżenia wyznacza szukanie miejsc zerowych prędkości radialnej. Mogą
+wypaść między próbkami, a ich dokładność to dokładność rozwiązania numerycznego.
 
 Opis orbity korzysta z energii orbitalnej ruchu względnego na jednostkę masy,
 v² / 2 - (m1 + m2) / r. Poniżej zera para jest związana, powyżej zera się rozbiega.
