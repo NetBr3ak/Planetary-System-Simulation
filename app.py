@@ -107,11 +107,14 @@ def compact(values: FloatArray) -> list[Any]:
 
 
 def parse_simulation_request(
-    data: dict[str, Any] | None,
+    data: object,
 ) -> tuple[float, float, FloatArray, FloatArray, FloatArray, FloatArray]:
-    """Validate and convert the raw request body. Raises (KeyError, TypeError, ValueError) on bad input."""
-    if data is None or any(field not in data for field in REQUIRED_FIELDS):
-        raise KeyError("missing required field")
+    """Validate and convert the raw request body. Raises TypeError or ValueError on bad input."""
+    if not isinstance(data, dict):
+        raise TypeError("the body must be a JSON object")
+    missing = [field for field in REQUIRED_FIELDS if field not in data]
+    if missing:
+        raise ValueError(f"missing field: {', '.join(missing)}")
     m1, m2 = float(data["m1"]), float(data["m2"])
     r1, r2, v1, v2 = (np.array(data[f], dtype=float) for f in ("r1", "r2", "v1", "v2"))
     if not (r1.shape == r2.shape == v1.shape == v2.shape == (2,)):
@@ -133,7 +136,7 @@ def parse_simulation_request(
 def simulate() -> Response | tuple[Response, int]:
     try:
         m1, m2, r1, r2, v1, v2 = parse_simulation_request(request.get_json(silent=True))
-    except (KeyError, TypeError, ValueError) as exc:
+    except (TypeError, ValueError) as exc:
         return jsonify(error=str(exc) or "invalid request body"), 400
     y0 = np.concatenate((r1, r2, v1, v2))
     energy, scale = orbital_energy(m1, m2, y0)

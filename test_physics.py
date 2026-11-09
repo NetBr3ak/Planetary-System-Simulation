@@ -122,3 +122,16 @@ def test_overflowing_energy_never_reaches_the_response() -> None:
     )
     assert resp.status_code == 422
     assert b"NaN" not in resp.data
+
+
+def test_missing_field_is_named() -> None:
+    body = {key: value for key, value in SAMPLE.items() if key != "m2"}
+    status, response = simulate(body)
+    assert status == 400
+    assert response["error"] == "missing field: m2"
+
+
+def test_body_that_is_not_an_object_returns_400() -> None:
+    status, response = simulate(["m1", "m2", "r1", "r2", "v1", "v2"])
+    assert status == 400
+    assert "error" in response
