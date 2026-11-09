@@ -17,9 +17,9 @@ app.config["MAX_CONTENT_LENGTH"] = 64 * 1024
 REQUIRED_FIELDS = ("m1", "m2", "r1", "r2", "v1", "v2")
 SIGNIFICANT_DIGITS = 7
 T_END = 10.0
-# Measured on an Apple M2: an orbit costs 4 ms of solving when circular and 42 ms at
-# eccentricity 0.99999, so 100 orbits finish within 5 s. Past that the 1000 samples
-# also drop below 10 points per orbit and the plot turns into chords.
+# Measured on an Apple M2: 100 orbits take 0.4 s to solve when circular, 4.2 s at
+# eccentricity 0.99999 and 6 s at 0.9999999. Past 100 the 1000 samples also drop
+# below 10 points per orbit and the plot turns into chords.
 MAX_ORBITS = 100
 
 FloatArray = NDArray[np.float64]
