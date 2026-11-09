@@ -156,6 +156,14 @@ def test_overflowing_energy_never_reaches_the_response() -> None:
     assert b"NaN" not in resp.data
 
 
+@pytest.mark.parametrize("field, value", [("m1", 10**400), ("r1", [10**400, 0])])
+def test_integer_past_float64_returns_400(field: str, value: object) -> None:
+    """JSON integers have no size limit, and float() raises OverflowError on 10**400."""
+    status, body = simulate({**SAMPLE, field: value})
+    assert status == 400
+    assert "too large" in body["error"]
+
+
 def test_missing_field_is_named() -> None:
     body = {key: value for key, value in SAMPLE.items() if key != "m2"}
     status, response = simulate(body)

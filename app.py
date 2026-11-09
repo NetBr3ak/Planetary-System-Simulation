@@ -111,7 +111,8 @@ def compact(values: FloatArray) -> list[Any]:
 def parse_simulation_request(
     data: object,
 ) -> tuple[float, float, FloatArray, FloatArray, FloatArray, FloatArray]:
-    """Validate and convert the raw request body. Raises TypeError or ValueError on bad input."""
+    """Validate and convert the raw request body. Raises TypeError, ValueError or
+    OverflowError (a JSON integer past the float64 range) on bad input."""
     if not isinstance(data, dict):
         raise TypeError("the body must be a JSON object")
     missing = [field for field in REQUIRED_FIELDS if field not in data]
@@ -138,7 +139,7 @@ def parse_simulation_request(
 def simulate() -> Response | tuple[Response, int]:
     try:
         m1, m2, r1, r2, v1, v2 = parse_simulation_request(request.get_json(silent=True))
-    except (TypeError, ValueError) as exc:
+    except (TypeError, ValueError, OverflowError) as exc:
         return jsonify(error=str(exc) or "invalid request body"), 400
     y0 = np.concatenate((r1, r2, v1, v2))
     # Extreme starts overflow or divide by zero here. The check below rejects them, so
