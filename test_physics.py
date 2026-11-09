@@ -5,6 +5,7 @@ from math import pi, sqrt
 from typing import Any
 
 import numpy as np
+import pytest
 
 from app import app
 
@@ -104,6 +105,37 @@ def test_overflowing_values_return_400() -> None:
     status, body = simulate({**SAMPLE, "v1": [1e200, 0]})
     assert status == 400
     assert "too large" in body["error"]
+
+
+@pytest.mark.parametrize(
+    "start",
+    [
+        pytest.param({**SAMPLE, "r2": [1e-200, 0]}, id="separation-squares-to-zero"),
+        pytest.param(
+            {
+                **SAMPLE,
+                "m1": 1,
+                "m2": 1,
+                "r2": [1e-120, 0],
+                "v1": [0, 0],
+                "v2": [0, 1e80],
+            },
+            id="separation-cubes-to-zero",
+        ),
+        pytest.param(
+            {**SAMPLE, "r1": [-1e308, 0], "r2": [1e308, 0]}, id="separation-overflows"
+        ),
+        pytest.param(
+            {**SAMPLE, "m1": 1e200, "m2": 1e200, "r2": [1e200, 0]}, id="pull-overflows"
+        ),
+    ],
+)
+def test_start_beyond_float64_returns_400(start: dict[str, Any]) -> None:
+    """The first start divided by a distance that underflowed to zero (HTTP 500). The
+    others give a NaN starting acceleration, and solve_ivp never returned from them."""
+    status, body = simulate(start)
+    assert status == 400
+    assert "too large or too small" in body["error"]
 
 
 def test_overflowing_energy_never_reaches_the_response() -> None:

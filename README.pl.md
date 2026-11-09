@@ -101,8 +101,8 @@ Odczyt pokazuje dryf w każdym kroku, więc można go sprawdzić dla własnych d
   dostaje błąd 422, zanim solver ruszy. Na Apple M2 100 orbit liczy się 0,4 s, gdy są
   kołowe, i 4,2 s przy mimośrodzie 0,99999. Powyżej 100 orbit 1000 próbek daje też
   mniej niż 10 punktów na orbitę, a wykres zamienia się w proste cięciwy.
-- Wartości za duże dla 64-bitowych liczb zmiennoprzecinkowych dają komunikat o błędzie
-  zamiast wyniku.
+- Wartości za duże lub za małe dla 64-bitowych liczb zmiennoprzecinkowych dają
+  komunikat o błędzie zamiast wyniku.
 - Strona pobiera Plotly i dwa kroje pisma z publicznych CDN, więc potrzebuje
   połączenia z internetem.
 - Rozmiar zapytania jest ograniczony do 64 KB, ale aplikacja nie ma limitu liczby zapytań.

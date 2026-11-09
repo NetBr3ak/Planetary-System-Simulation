@@ -101,7 +101,8 @@ The readout shows the drift at every step, so you can check it for your own inpu
   422 error before the solver starts. On an Apple M2, 100 orbits take 0.4 s to solve
   when circular and 4.2 s at eccentricity 0.99999. Past 100 orbits, 1000 samples
   also give fewer than 10 points per orbit, and the plot turns into straight chords.
-- Values too large for 64-bit floats get an error message instead of a result.
+- Values too large or too small for 64-bit floats get an error message instead of a
+  result.
 - The page loads Plotly and two fonts from public CDNs, so it needs an internet
   connection.
 - Request bodies are capped at 64 KB, but the app has no rate limit. Do not expose it

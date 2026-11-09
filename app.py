@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from math import isfinite, pi, sqrt
+from math import hypot, isfinite, pi, sqrt
 from typing import Any, cast
 
 import numpy as np
@@ -60,7 +60,9 @@ def orbital_energy(m1: float, m2: float, y0: FloatArray) -> tuple[float, float]:
     r1, r2, v1, v2 = y0.reshape((4, 2))
     relative_velocity = v2 - v1
     kinetic = 0.5 * float(relative_velocity @ relative_velocity)
-    potential = (m1 + m2) / float(np.linalg.norm(r2 - r1))
+    # Not np.linalg.norm: its squares underflow to zero below a separation of about 1e-154.
+    dx, dy = r2 - r1
+    potential = (m1 + m2) / hypot(dx, dy)
     return kinetic - potential, kinetic + potential
 
 
@@ -139,9 +141,15 @@ def simulate() -> Response | tuple[Response, int]:
     except (TypeError, ValueError) as exc:
         return jsonify(error=str(exc) or "invalid request body"), 400
     y0 = np.concatenate((r1, r2, v1, v2))
-    energy, scale = orbital_energy(m1, m2, y0)
-    if not isfinite(scale):
-        message = "the values are too large to compute with; use smaller numbers or start the planets further apart"
+    # Extreme starts overflow or divide by zero here. The check below rejects them, so
+    # NumPy's warnings would only repeat it in the log.
+    with np.errstate(all="ignore"):
+        energy, scale = orbital_energy(m1, m2, y0)
+        start_derivative = two_body_equations(0, y0, m1, m2)
+    # solve_ivp sizes its first step from the starting derivative and never returns when
+    # that holds a NaN, which 0 / 0 or inf / inf in the 1 / r**3 term gives.
+    if not (isfinite(scale) and np.isfinite(start_derivative).all()):
+        message = "the values are too large or too small to compute with; use numbers closer to 1"
         return jsonify(error=message), 400
     if orbit_count(m1 + m2, energy) > MAX_ORBITS:
         message = (
