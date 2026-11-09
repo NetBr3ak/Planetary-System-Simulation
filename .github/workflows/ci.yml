@@ -12,6 +12,8 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
+    # A hang in the integrator once blocked a run; the suite takes under a minute.
+    timeout-minutes: 10
     strategy:
       matrix:
         # The floor from pyproject.toml and the newest release.
