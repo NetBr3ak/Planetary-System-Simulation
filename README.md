@@ -43,7 +43,7 @@ draws each planet's path.
    python app.py
    ```
 
-4. Open `http://localhost:5000` in your browser.
+4. Open `http://127.0.0.1:8000` in your browser.
 
 ## How to use it
 

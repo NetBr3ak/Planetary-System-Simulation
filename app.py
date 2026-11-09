@@ -192,4 +192,5 @@ def index() -> str:
 
 
 if __name__ == "__main__":
-    app.run(debug=False)
+    # macOS gives port 5000 to the AirPlay Receiver, which answers 403 to the browser.
+    app.run(port=8000, debug=False)

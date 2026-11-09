@@ -43,7 +43,7 @@ oblicza i rysuje tor każdej planety.
    python app.py
    ```
 
-4. Otwórz `http://localhost:5000` w przeglądarce.
+4. Otwórz `http://127.0.0.1:8000` w przeglądarce.
 
 ## Jak korzystać
 
