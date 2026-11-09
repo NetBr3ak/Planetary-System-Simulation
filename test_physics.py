@@ -97,3 +97,28 @@ def test_tiny_masses_are_classified_as_escape() -> None:
     status, body = simulate({**SAMPLE, "m1": 1e-300, "m2": 1e-300})
     assert status == 200
     assert body["classification"] == "escape"
+
+
+def test_overflowing_values_return_400() -> None:
+    """A speed of 1e200 squares past the float64 range."""
+    status, body = simulate({**SAMPLE, "v1": [1e200, 0]})
+    assert status == 400
+    assert "too large" in body["error"]
+
+
+def test_overflowing_energy_never_reaches_the_response() -> None:
+    """The lab-frame energy overflows while the orbit itself is fine. NaN is not JSON:
+    the browser's JSON.parse would reject the whole response."""
+    resp = app.test_client().post(
+        "/simulate",
+        json={
+            "m1": 1e150,
+            "m2": 1e-150,
+            "r1": [0, 0],
+            "r2": [1e100, 0],
+            "v1": [1e80, 0],
+            "v2": [0, 0],
+        },
+    )
+    assert resp.status_code == 422
+    assert b"NaN" not in resp.data

@@ -137,6 +137,9 @@ def simulate() -> Response | tuple[Response, int]:
         return jsonify(error=str(exc) or "invalid request body"), 400
     y0 = np.concatenate((r1, r2, v1, v2))
     energy, scale = orbital_energy(m1, m2, y0)
+    if not isfinite(scale):
+        message = "the values are too large to compute with; use smaller numbers or start the planets further apart"
+        return jsonify(error=message), 400
     if orbit_count(m1 + m2, energy) > MAX_ORBITS:
         message = (
             f"the planets would complete more than {MAX_ORBITS} orbits in {T_END:g} time "
@@ -163,9 +166,14 @@ def simulate() -> Response | tuple[Response, int]:
         # an otherwise well-formed body, so it does not share 400 with the parse errors.
         message = "the planets pass too close together for the solver to follow; start them further apart"
         return jsonify(error=message), 422
+    drift = energy_drift(m1, m2, sol.y)
+    # Lab-frame energy can overflow where the relative orbit does not, and NaN is not JSON.
+    if not (np.isfinite(sol.y).all() and np.isfinite(drift).all()):
+        message = "the values are too large to compute with; use smaller numbers"
+        return jsonify(error=message), 422
     return jsonify(
         positions=compact(sol.y[:4]),
-        drift=compact(energy_drift(m1, m2, sol.y)),
+        drift=compact(drift),
         events=[
             {"t": float(t), "r1": state[:2].tolist(), "r2": state[2:4].tolist()}
             for t, state in zip(sol.t_events[0], sol.y_events[0], strict=True)
