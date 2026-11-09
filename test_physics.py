@@ -81,3 +81,19 @@ def test_head_on_collision_returns_422() -> None:
     status, body = simulate({**SAMPLE, "v1": [0, 0], "v2": [-1000, -1000]})
     assert status == 422
     assert "too close" in body["error"]
+
+
+def test_too_many_orbits_returns_422() -> None:
+    """A tight orbit would keep the solver busy for minutes and leave the 1000 samples
+    a few points per orbit, so it is refused before solving."""
+    status, body = simulate(kepler_orbit(orbits=200, eccentricity=0))
+    assert status == 422
+    assert "orbits" in body["error"]
+
+
+def test_tiny_masses_are_classified_as_escape() -> None:
+    """At 1e-300 the product m1 * m2 underflows to zero. Gravity is negligible against
+    a relative speed of 44, so the pair escapes."""
+    status, body = simulate({**SAMPLE, "m1": 1e-300, "m2": 1e-300})
+    assert status == 200
+    assert body["classification"] == "escape"
