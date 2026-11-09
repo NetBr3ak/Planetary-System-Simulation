@@ -197,7 +197,9 @@ const drawPlot = () => {
             orientation: 'v'
         }
     };
-    return Plotly.newPlot('plot', traces, layout, { responsive: true })
+    // Selection tools do nothing on a line plot, and each one is a tab stop.
+    const config = { displaylogo: false, modeBarButtonsToRemove: ['select2d', 'lasso2d'] };
+    return Plotly.newPlot('plot', traces, layout, config)
         .then(() => Plotly.addFrames('plot', frames))
         .then(() => {
             scopeEl.classList.add('is-drawn');
@@ -242,6 +244,13 @@ const summarise = () => {
 const ignoreInterruption = (reason) => {
     if (reason !== undefined) throw reason;
 };
+
+// Plotly's responsive option follows window resizes only. The strip under the plot
+// changes height when its controls appear or the status wraps, and a plot sized before
+// that spills over the strip and hides the frame buttons on a phone.
+new ResizeObserver(() => {
+    if (plotEl.data) Plotly.Plots.resize(plotEl);
+}).observe(plotEl);
 
 // A real button instead of a Plotly updatemenu: the SVG widget is not keyboard reachable.
 animateButton.addEventListener('click', () => {

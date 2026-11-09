@@ -414,6 +414,11 @@ form {
     opacity: 1;
 }
 
+/* Plotly rings a focused toolbar button in 1px black, invisible on this ground. */
+#plot .modebar-btn:focus-visible {
+    outline: 2px solid var(--signal);
+}
+
 /* ---------- status strip ---------- */
 
 .strip {
