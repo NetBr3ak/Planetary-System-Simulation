@@ -98,9 +98,9 @@ def energy_drift(m1: float, m2: float, y: FloatArray) -> FloatArray:
 
 
 def compact(values: FloatArray) -> list[Any]:
-    """Round to SIGNIFICANT_DIGITS figures of the array's own peak. On the sample input
-    that is a rounding error under a hundredth of a plotted pixel, and it cuts the
-    response from 148,539 bytes to 42,774."""
+    """Round to SIGNIFICANT_DIGITS figures of the array's own peak. The drift readout
+    shows three figures, and on the sample input this cuts the response from 97,177
+    bytes to 86,475."""
     peak = float(np.abs(values).max())
     decimals = SIGNIFICANT_DIGITS
     if peak > 0:
@@ -184,7 +184,9 @@ def simulate() -> Response | tuple[Response, int]:
         message = "the values are too large to compute with; use smaller numbers"
         return jsonify(error=message), 422
     return jsonify(
-        positions=compact(sol.y[:4]),
+        # Not compact: the reference frames subtract positions, and a step set by a peak
+        # of 1e7 rounded a separation of 5.7 to 0.
+        positions=sol.y[:4].tolist(),
         drift=compact(drift),
         events=[
             {"t": float(t), "r1": state[:2].tolist(), "r2": state[2:4].tolist()}

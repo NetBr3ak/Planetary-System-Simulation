@@ -46,7 +46,7 @@ measure that error and check the results against laws the solver does not know a
 |---|---|---|---|
 | Energy drift, `max(dE/E)` | sample input, 13.7 orbits | 1.1e-8 | 1e-7 |
 | Energy drift, `max(dE/E)` | 90 orbits, eccentricity 0.5 | 1.9e-8 | 1e-7 |
-| Momentum: the centre of mass moves in a straight line | sample input | 4.9e-5 off, the response's rounding step | 1e-4 |
+| Momentum: the centre of mass moves in a straight line | sample input | 8.5e-14 off | 1e-4 |
 | Kepler's third law: closest approaches at t = 1, 3, 5, 7, 9 | orbit built with period 2 | 5.0e-9 off | 1e-6 |
 
 The readout shows the drift at every step, so you can check it for your own input.

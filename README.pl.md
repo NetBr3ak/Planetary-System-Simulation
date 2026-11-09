@@ -46,7 +46,7 @@ Testy mierzą ten błąd i porównują wynik z prawami, których solver nie zna:
 |---|---|---|---|
 | Dryf energii, `max(dE/E)` | dane przykładowe, 13,7 orbity | 1,1e-8 | 1e-7 |
 | Dryf energii, `max(dE/E)` | 90 orbit, mimośród 0,5 | 1,9e-8 | 1e-7 |
-| Pęd: środek masy porusza się po prostej | dane przykładowe | odchyłka 4,9e-5, krok zaokrąglenia odpowiedzi | 1e-4 |
+| Pęd: środek masy porusza się po prostej | dane przykładowe | odchyłka 8,5e-14 | 1e-4 |
 | III prawo Keplera: największe zbliżenia w t = 1, 3, 5, 7, 9 | orbita zbudowana z okresem 2 | odchyłka 5,0e-9 | 1e-6 |
 
 Odczyt pokazuje dryf w każdym kroku, więc można go sprawdzić dla własnych danych.

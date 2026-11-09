@@ -59,6 +59,19 @@ def test_barycentre_moves_in_a_straight_line() -> None:
         assert np.abs(centre - (start + velocity * t)).max() < 1e-4
 
 
+def test_shared_offset_keeps_the_separation() -> None:
+    """The reference frames subtract positions in the browser. With both planets moved
+    1e7 from the origin, rounding to the peak had set the separation of 5.7 to 0; the
+    solver alone leaves it 1.4e-7 off."""
+    separations = []
+    for offset in (0, 1e7):
+        status, body = simulate({**SAMPLE, "r1": [offset, 0], "r2": [offset + 4, 4]})
+        assert status == 200
+        r1x, r1y, r2x, r2y = (np.array(axis) for axis in body["positions"])
+        separations.append(np.hypot(r2x - r1x, r2y - r1y))
+    assert np.abs(separations[1] - separations[0]).max() < 1e-5
+
+
 def test_closest_approaches_repeat_at_the_kepler_period() -> None:
     """The orbit is built from Kepler's third law with a period of 2. The solver only
     knows Newton's law, so the near points must still land at t = 1, 3, 5, 7, 9."""
